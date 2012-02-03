@@ -270,10 +270,11 @@ static git_otype
 int_to_loose_object_type(int type_id)
 {
     switch((git_otype)type_id) {
-        case GIT_OBJ_COMMIT: return GIT_OBJ_COMMIT;
-        case GIT_OBJ_TREE: return GIT_OBJ_TREE;
-        case GIT_OBJ_BLOB: return GIT_OBJ_BLOB;
-        case GIT_OBJ_TAG: return GIT_OBJ_TAG;
+        case GIT_OBJ_COMMIT:
+        case GIT_OBJ_TREE:
+        case GIT_OBJ_BLOB:
+        case GIT_OBJ_TAG:
+		return type_id;
         default: return GIT_OBJ_BAD;
     }
 }
