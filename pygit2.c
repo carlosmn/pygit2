@@ -1636,6 +1636,31 @@ Tree_getitem(Tree *self, PyObject *value)
     return wrap_tree_entry(entry, self);
 }
 
+static PyObject*
+Tree_get_subtree(Tree *self, PyObject *py_path)
+{
+    char *c_path;
+    git_tree *subtree;
+    Tree *py_subtree;
+    int err;
+
+   c_path = py_path_to_c_str(py_path);
+    if (c_path == NULL)
+        return NULL;
+
+    err = git_tree_get_subtree(&subtree, self->tree, c_path);
+    if (err < 0)
+        return Error_set(err);
+
+    py_subtree = PyObject_New(Tree, &TreeType);
+    if (py_subtree) {
+        py_subtree->repo = self->repo;
+        py_subtree->tree = subtree;
+    }
+
+    return (PyObject *)py_subtree;
+}
+
 static PySequenceMethods Tree_as_sequence = {
     0,                          /* sq_length */
     0,                          /* sq_concat */
@@ -1651,6 +1676,12 @@ static PyMappingMethods Tree_as_mapping = {
     (lenfunc)Tree_len,            /* mp_length */
     (binaryfunc)Tree_getitem,     /* mp_subscript */
     0,                            /* mp_ass_subscript */
+};
+
+static PyMethodDef Tree_methods[] = {
+    {"get_subtree", (PyCFunction) Tree_get_subtree, METH_O,
+     "Find and retrieve a subtree"},
+    {NULL, NULL, 0, NULL}
 };
 
 static PyTypeObject TreeType = {
@@ -1681,7 +1712,7 @@ static PyTypeObject TreeType = {
     0,                                         /* tp_weaklistoffset */
     (getiterfunc)Tree_iter,                    /* tp_iter           */
     0,                                         /* tp_iternext       */
-    0,                                         /* tp_methods        */
+    Tree_methods,                              /* tp_methods        */
     0,                                         /* tp_members        */
     0,                                         /* tp_getset         */
     0,                                         /* tp_base           */
