@@ -77,6 +77,7 @@ class ReferencesTest(utils.RepoTestCase):
     def test_reference_get_sha(self):
         reference = self.repo.lookup_reference('refs/heads/master')
         self.assertEqual(reference.hex, LAST_COMMIT)
+        self.assertEqual(self.repo['refs/heads/master'].hex, LAST_COMMIT)
 
 
     def test_reference_set_sha(self):

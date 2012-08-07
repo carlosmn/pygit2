@@ -69,8 +69,10 @@ lookup_object_prefix(Repository *repo, const git_oid *oid, size_t len,
 
     err = git_object_lookup_prefix(&obj, repo->repo, oid,
                                    (unsigned int)len, type);
-    if (err < 0)
+    if (err < 0) {
+        puts("lookup_object_prefix set an error");
         return Error_set_oid(err, oid, len);
+    }
 
     switch (git_object_type(obj)) {
         case GIT_OBJ_COMMIT:
@@ -101,6 +103,25 @@ PyObject *
 lookup_object(Repository *repo, const git_oid *oid, git_otype type)
 {
     return lookup_object_prefix(repo, oid, GIT_OID_HEXSZ, type);
+}
+
+void
+lookup_reference(git_reference **c_reference, git_repository *repo, PyObject *py_name)
+{
+    char *c_name;
+    int err;
+
+    /* Get the C name */
+    c_name = py_path_to_c_str(py_name);
+    if (c_name == NULL)
+        return;
+
+    /* Lookup */
+    err = git_reference_lookup(c_reference, repo, c_name);
+    if (err < 0)
+        Error_set_str(err, c_name);
+
+    free(c_name);
 }
 
 int
@@ -213,13 +234,37 @@ PyObject *
 Repository_getitem(Repository *self, PyObject *value)
 {
     git_oid oid;
-    int len;
+    git_reference *c_reference, *c_resolved;
+    PyObject *obj;
+    int len, err;
 
     len = py_str_to_git_oid(value, &oid);
-    if (len < 0)
+    if (len >= 0) {
+        PyErr_Clear();
+        obj = lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
+        puts("lookup_object_prefix");
+        if (!PyErr_Occurred()) /* No error? return the object */
+            return obj;
+    }
+
+    /* If we couldn't find an object with that name, try as a reference */
+    PyErr_Clear();
+    lookup_reference(&c_reference, self->repo, value);
+    puts("lookup_reference");
+    if (PyErr_Occurred()) /* Error? return it */
         return NULL;
 
-    return lookup_object_prefix(self, &oid, len, GIT_OBJ_ANY);
+    /* Now resolve the reference and return the object */
+    err = git_reference_resolve(&c_resolved, c_reference);
+    puts("git_reference_resolve");
+    git_reference_free(c_reference);
+    if (err < 0)
+        return Error_set(err);
+
+    obj = lookup_object(self, git_reference_oid(c_resolved), GIT_OBJ_ANY);
+    git_reference_free(c_resolved);
+
+    return obj;
 }
 
 git_odb_object *
@@ -603,23 +648,14 @@ PyObject *
 Repository_lookup_reference(Repository *self, PyObject *py_name)
 {
     git_reference *c_reference;
-    char *c_name;
+    PyObject *obj;
     int err;
 
-    /* 1- Get the C name */
-    c_name = py_path_to_c_str(py_name);
-    if (c_name == NULL)
+    lookup_reference(&c_reference, self->repo, py_name);
+    if (PyErr_Occurred())
         return NULL;
 
-    /* 2- Lookup */
-    err = git_reference_lookup(&c_reference, self->repo, c_name);
-    if (err < 0)  {
-        PyObject *err_obj = Error_set_str(err, c_name);
-        free(c_name);
-        return err_obj;
-    }
-
-    /* 3- Make an instance of Reference and return it */
+    /* Make an instance of Reference and return it */
     return wrap_reference(c_reference);
 }
 
