@@ -79,6 +79,102 @@ Walker_push(Walker *self, PyObject *py_hex)
 }
 
 PyObject *
+Walker_push_head(Walker *self)
+{
+    int err;
+
+    err = git_revwalk_push_head(self->walk);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+Walker_hide_head(Walker *self)
+{
+    int err;
+
+    err = git_revwalk_hide_head(self->walk);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+Walker_push_ref(Walker *self, PyObject *py_name)
+{
+    char *name;
+    int err;
+
+    name = py_str_to_c_str(py_name, NULL);
+    if (name == NULL)
+        return NULL;
+
+    err = git_revwalk_push_ref(self->walk, name);
+    free(name);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+Walker_hide_ref(Walker *self, PyObject *py_name)
+{
+    char *name;
+    int err;
+
+    name = py_str_to_c_str(py_name, NULL);
+    if (name == NULL)
+        return NULL;
+
+    err = git_revwalk_hide_ref(self->walk, name);
+    free(name);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+Walker_push_glob(Walker *self, PyObject *py_pattern)
+{
+    char *pattern;
+    int err;
+
+    pattern = py_str_to_c_str(py_pattern, NULL);
+    if (pattern == NULL)
+        return NULL;
+
+    err = git_revwalk_push_glob(self->walk, pattern);
+    free(pattern);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
+Walker_hide_glob(Walker *self, PyObject *py_pattern)
+{
+    char *pattern;
+    int err;
+
+    pattern = py_str_to_c_str(py_pattern, NULL);
+    if (pattern == NULL)
+        return NULL;
+
+    err = git_revwalk_hide_glob(self->walk, pattern);
+    free(pattern);
+    if (err < 0)
+        return Error_set(err);
+
+    Py_RETURN_NONE;
+}
+
+PyObject *
 Walker_sort(Walker *self, PyObject *py_sort_mode)
 {
     int sort_mode;
@@ -136,6 +232,18 @@ PyMethodDef Walker_methods[] = {
      "Mark a commit (and its ancestors) uninteresting for the output."},
     {"push", (PyCFunction)Walker_push, METH_O,
      "Mark a commit to start traversal from."},
+    {"hide_head", (PyCFunction)Walker_hide_head, METH_NOARGS,
+     "Mark HEAD's commit (and its ancestors) uninteresting for the output."},
+    {"push_head", (PyCFunction)Walker_push_head, METH_NOARGS,
+     "Mark HEAD's commit to start traversal from."},
+    {"hide_ref", (PyCFunction)Walker_hide_ref, METH_O,
+     "Mark a ref's commit (and its ancestors) uninteresting for the output."},
+    {"push_ref", (PyCFunction)Walker_push_ref, METH_O,
+     "Mark a ref's commit to start traversal from."},
+    {"hide_glob", (PyCFunction)Walker_hide_glob, METH_O,
+     "Mark a a set of refs given by a pattern (and its ancestors) uninteresting for the output."},
+    {"push_glob", (PyCFunction)Walker_push_glob, METH_O,
+     "Mark a set of refs given by a pattern to start traversal from."},
     {"reset", (PyCFunction)Walker_reset, METH_NOARGS,
      "Reset the walking machinery for reuse."},
     {"sort", (PyCFunction)Walker_sort, METH_O,

@@ -69,6 +69,18 @@ class WalkerTest(utils.RepoTestCase):
         out = [ x.hex for x in walker ]
         self.assertEqual(out, log)
 
+    def test_walk_push_ref(self):
+        walker = self.repo.walk(None, GIT_SORT_TIME)
+        walker.push_ref('refs/heads/master')
+        out = [ x.hex for x in walker ]
+        self.assertEqual(out, log)
+
+    def test_walk_push_glob(self):
+        walker = self.repo.walk(None, GIT_SORT_TIME)
+        walker.push_glob('refs/heads/*')
+        out = [ x.hex for x in walker ]
+        self.assertEqual(out, log)
+
     def test_reverse(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME | GIT_SORT_REVERSE)
         out = [ x.hex for x in walker ]
