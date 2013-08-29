@@ -54,6 +54,23 @@ class ReferencesTest(utils.RepoTestCase):
                          ['refs/heads/i18n', 'refs/heads/master',
                           'refs/tags/version1'])
 
+    def test_reference_iterator(self):
+        repo = self.repo
+
+        # Iterate over all references
+        self.assertEqual(sorted([ref.name for ref in repo.references()]),
+                         ['refs/heads/i18n', 'refs/heads/master'])
+
+        # We add a symbolic reference
+        repo.create_reference('refs/tags/version1', 'refs/heads/master')
+        self.assertEqual(sorted([ref.name for ref in repo.references()]),
+                         ['refs/heads/i18n', 'refs/heads/master',
+                          'refs/tags/version1'])
+
+        # Test iterating with a glob filter
+        self.assertEqual([ref.name for ref in repo.references('refs/tags/*')],
+                         ['refs/tags/version1'])
+
     def test_head(self):
         head = self.repo.head
         self.assertEqual(LAST_COMMIT, self.repo[head.target].hex)

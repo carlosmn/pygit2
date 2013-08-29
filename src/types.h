@@ -164,6 +164,12 @@ typedef Reference Branch;
 
 typedef struct {
     PyObject_HEAD
+    git_reference_iterator *iter;
+    Repository *repo;
+} ReferenceIter;
+
+typedef struct {
+    PyObject_HEAD
     git_signature *signature;
     char *oid_old;
     char *oid_new;

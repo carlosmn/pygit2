@@ -57,6 +57,7 @@ extern PyTypeObject IndexIterType;
 extern PyTypeObject WalkerType;
 extern PyTypeObject ConfigType;
 extern PyTypeObject ReferenceType;
+extern PyTypeObject ReferenceIterType;
 extern PyTypeObject RefLogIterType;
 extern PyTypeObject RefLogEntryType;
 extern PyTypeObject BranchType;
@@ -318,7 +319,8 @@ moduleinit(PyObject* m)
      * References
      */
     INIT_TYPE(ReferenceType, NULL, PyType_GenericNew)
-    INIT_TYPE(RefLogEntryType, NULL, NULL)
+    INIT_TYPE(ReferenceIterType, NULL, NULL)
+	INIT_TYPE(RefLogEntryType, NULL, NULL)
     INIT_TYPE(RefLogIterType, NULL, NULL)
     INIT_TYPE(NoteType, NULL, NULL)
     INIT_TYPE(NoteIterType, NULL, NULL)

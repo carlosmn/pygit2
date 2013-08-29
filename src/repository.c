@@ -914,6 +914,98 @@ out:
     return py_result;
 }
 
+PyDoc_STRVAR(ReferenceIter__doc__, "Reference iterator object.");
+
+PyObject *
+ReferenceIter_iternext(ReferenceIter *self)
+{
+    int err;
+    git_reference *ref;
+
+    err = git_reference_next(&ref, self->iter);
+    if (err == GIT_ITEROVER) {
+        PyErr_SetNone(PyExc_StopIteration);
+        return NULL;
+    }
+
+    if (err < 0)
+        return Error_set(err);
+
+    return wrap_reference(ref, self->repo);
+}
+
+static void
+ReferenceIter_dealloc(ReferenceIter *self)
+{
+    Py_DECREF(self->repo);
+    git_reference_iterator_free(self->iter);
+    PyObject_Del(self);
+}
+
+PyTypeObject ReferenceIterType = {
+    PyVarObject_HEAD_INIT(NULL, 0)
+    "_pygit2.ReferenceIter",                   /* tp_name           */
+    sizeof(ReferenceIter),                          /* tp_basicsize      */
+    0,                                         /* tp_itemsize       */
+    (destructor)ReferenceIter_dealloc,         /* tp_dealloc        */
+    0,                                         /* tp_print          */
+    0,                                         /* tp_getattr        */
+    0,                                         /* tp_setattr        */
+    0,                                         /* tp_compare        */
+    0,                                         /* tp_repr           */
+    0,                                         /* tp_as_number      */
+    0,                                         /* tp_as_sequence    */
+    0,                                         /* tp_as_mapping     */
+    0,                                         /* tp_hash           */
+    0,                                         /* tp_call           */
+    0,                                         /* tp_str            */
+    0,                                         /* tp_getattro       */
+    0,                                         /* tp_setattro       */
+    0,                                         /* tp_as_buffer      */
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,  /* tp_flags          */
+    ReferenceIter__doc__,                      /* tp_doc            */
+    0,                                         /* tp_traverse       */
+    0,                                         /* tp_clear          */
+    0,                                         /* tp_richcompare    */
+    0,                                         /* tp_weaklistoffset */
+    PyObject_SelfIter,                         /* tp_iter           */
+    (iternextfunc) ReferenceIter_iternext,          /* tp_iternext       */
+};
+
+PyDoc_STRVAR(Repository_references__doc__,
+  "references() -> ReferenceIter\n"
+  "\n"
+  "Return a reference iterator.");
+
+PyObject *
+Repository_references(Repository *self, PyObject *args)
+{
+    ReferenceIter *iter;
+    char *glob = NULL;
+    int err;
+
+    if (!PyArg_ParseTuple(args, "|s", &glob))
+        return NULL;
+
+    iter = PyObject_New(ReferenceIter, &ReferenceIterType);
+    if (iter == NULL)
+        return NULL;
+
+    if (glob == NULL)
+        err = git_reference_iterator_new(&iter->iter, self->repo);
+    else
+        err = git_reference_iterator_glob_new(&iter->iter, self->repo, glob);
+
+    if (err < 0) {
+        Py_DECREF(iter);
+        return Error_set(err);
+    }
+
+    Py_INCREF(self);
+    iter->repo = self;
+
+    return (PyObject *) iter;
+}
 
 PyDoc_STRVAR(Repository_listall_branches__doc__,
   "listall_branches([flags]) -> (str, ...)\n"
@@ -1436,6 +1528,7 @@ PyMethodDef Repository_methods[] = {
     METHOD(Repository, write, METH_VARARGS),
     METHOD(Repository, create_reference_direct, METH_VARARGS),
     METHOD(Repository, create_reference_symbolic, METH_VARARGS),
+    METHOD(Repository, references, METH_VARARGS),
     METHOD(Repository, listall_references, METH_NOARGS),
     METHOD(Repository, lookup_reference, METH_O),
     METHOD(Repository, revparse_single, METH_O),
