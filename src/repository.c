@@ -1601,6 +1601,19 @@ Repository_reset(Repository *self, PyObject* args)
     Py_RETURN_NONE;
 }
 
+PyObject *
+Repository__repr__(Repository *self)
+{
+    const char *str;
+
+    if (git_repository_is_bare(self->repo))
+        str = git_repository_workdir(self->repo);
+    else
+        str = git_repository_path(self->repo);
+
+    return PyString_FromFormat("pygit2.Repository('%s')", str);
+}
+
 PyMethodDef Repository_methods[] = {
     METHOD(Repository, create_blob, METH_VARARGS),
     METHOD(Repository, create_blob_fromworkdir, METH_VARARGS),
@@ -1667,7 +1680,7 @@ PyTypeObject RepositoryType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Repository__repr__,              /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */

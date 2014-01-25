@@ -416,6 +416,13 @@ Reference_get_object(Reference *self)
 }
 
 
+PyObject *
+Reference__repr__(Reference *self)
+{
+    return PyString_FromFormat("<pygit2.Reference '%s'>",
+                               git_reference_name(self->reference));
+}
+
 PyDoc_STRVAR(RefLogEntry_committer__doc__, "Committer.");
 
 PyObject *
@@ -534,7 +541,7 @@ PyTypeObject ReferenceType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Reference__repr__,               /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */

@@ -227,6 +227,13 @@ Refspec_rtransform(Refspec *self, PyObject *py_str)
     return py_trans;
 }
 
+PyObject *
+Refspec__repr__(Refspec *self)
+{
+    return PyString_FromFormat("<pygit2.Refspec '%s'>",
+                               git_refspec_string(self->refspec));
+}
+
 PyMethodDef Refspec_methods[] = {
     METHOD(Refspec, src_matches, METH_O),
     METHOD(Refspec, dst_matches, METH_O),
@@ -263,7 +270,7 @@ PyTypeObject RefspecType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Refspec__repr__,                 /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
@@ -824,6 +831,13 @@ Remote_add_fetch(Remote *self, PyObject *args)
     Py_RETURN_NONE;
 }
 
+PyObject *
+Remote__repr__(Remote *self)
+{
+    return PyString_FromFormat("<pygit2.Remote '%s'>",
+                               git_remote_name(self->remote));
+}
+
 PyMethodDef Remote_methods[] = {
     METHOD(Remote, fetch, METH_NOARGS),
     METHOD(Remote, save, METH_NOARGS),
@@ -860,7 +874,7 @@ PyTypeObject RemoteType = {
     0,                                         /* tp_getattr        */
     0,                                         /* tp_setattr        */
     0,                                         /* tp_compare        */
-    0,                                         /* tp_repr           */
+    (reprfunc)Remote__repr__,                  /* tp_repr           */
     0,                                         /* tp_as_number      */
     0,                                         /* tp_as_sequence    */
     0,                                         /* tp_as_mapping     */
