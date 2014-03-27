@@ -49,13 +49,7 @@ wrap_transfer_progress(const git_transfer_progress *stats)
     if (!py_stats)
         return NULL;
 
-    py_stats->total_objects = stats->total_objects;
-    py_stats->indexed_objects = stats->indexed_objects;
-    py_stats->received_objects = stats->received_objects;
-    py_stats->local_objects = stats->local_objects;
-    py_stats->total_deltas = stats->total_deltas;
-    py_stats->indexed_deltas = stats->indexed_deltas;
-    py_stats->received_bytes = stats->received_bytes;
+    memcpy(&py_stats->tp, stats, sizeof(git_transfer_progress));
 
     return (PyObject *) py_stats;
 }
@@ -67,21 +61,21 @@ TransferProgress_dealloc(TransferProgress *self)
 }
 
 PyMemberDef TransferProgress_members[] = {
-    RMEMBER(TransferProgress, total_objects, T_UINT,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, total_objects, T_UINT,
             "Total number objects to download"),
-    RMEMBER(TransferProgress, indexed_objects, T_UINT,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, indexed_objects, T_UINT,
             "Objects which have been indexed"),
-    RMEMBER(TransferProgress, received_objects, T_UINT,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, received_objects, T_UINT,
             "Objects which have been received up to now"),
-    RMEMBER(TransferProgress, local_objects, T_UINT,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, local_objects, T_UINT,
             "Local objects which were used to fix the thin pack"),
-    RMEMBER(TransferProgress, total_deltas, T_UINT,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, total_deltas, T_UINT,
             "Total number of deltas in the pack"),
-    RMEMBER(TransferProgress, indexed_deltas, T_UINT,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, indexed_deltas, T_UINT,
             "Deltas which have been indexed"),
     /* FIXME: technically this is unsigned, but there's no value for size_t
      * here. */
-    RMEMBER(TransferProgress, received_bytes, T_PYSSIZET,
+    RMMEMBER(TransferProgress, tp, git_transfer_progress, received_bytes, T_PYSSIZET,
             "Number of bytes received up to now"),
     {NULL},
 };

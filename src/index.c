@@ -27,6 +27,7 @@
 
 #define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <structmember.h>
 #include "error.h"
 #include "types.h"
 #include "utils.h"
@@ -643,29 +644,6 @@ IndexEntry_dealloc(IndexEntry *self)
     PyObject_Del(self);
 }
 
-
-PyDoc_STRVAR(IndexEntry_mode__doc__, "Mode.");
-
-PyObject *
-IndexEntry_mode__get__(IndexEntry *self)
-{
-    return PyLong_FromLong(self->entry.mode);
-}
-
-int
-IndexEntry_mode__set__(IndexEntry *self, PyObject *py_mode)
-{
-    long c_val;
-
-    c_val = PyLong_AsLong(py_mode);
-    if (c_val == -1 && PyErr_Occurred())
-        return -1;
-
-    self->entry.mode = (unsigned int) c_val;
-
-    return 0;
-}
-
 PyDoc_STRVAR(IndexEntry_path__doc__, "Path.");
 
 PyObject *
@@ -715,10 +693,14 @@ IndexEntry_hex__get__(IndexEntry *self)
 }
 
 PyGetSetDef IndexEntry_getseters[] = {
-    GETSET(IndexEntry, mode),
     GETSET(IndexEntry, path),
     GETSET(IndexEntry, oid),
     GETTER(IndexEntry, hex),
+    {NULL},
+};
+
+PyMemberDef IndexEntry_members[] = {
+    MMEMBER(IndexEntry, entry, git_index_entry, mode, T_UINT, "Mode."),
     {NULL},
 };
 
@@ -753,7 +735,7 @@ PyTypeObject IndexEntryType = {
     0,                                         /* tp_iter           */
     0,                                         /* tp_iternext       */
     0,                                         /* tp_methods        */
-    0,                                         /* tp_members        */
+    IndexEntry_members,                        /* tp_members        */
     IndexEntry_getseters,                      /* tp_getset         */
     0,                                         /* tp_base           */
     0,                                         /* tp_dict           */

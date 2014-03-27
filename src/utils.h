@@ -144,6 +144,12 @@ int get_strarraygit_from_pylist(git_strarray *array, PyObject *pylist);
 #define RMEMBER(type, attr, attr_type, docstr)\
   {#attr, attr_type, offsetof(type, attr), READONLY, PyDoc_STR(docstr)}
 
+/* Member of member, lets us refer to embedded structs */
+#define MMEMBER(type, attr, type2, attr2, attr_type, docstr)		\
+    {#attr2, attr_type, offsetof(type, attr) + offsetof(type2, attr2), 0, PyDoc_STR(docstr)}
+
+#define RMMEMBER(type, attr, type2, attr2, attr_type, docstr)		\
+    {#attr2, attr_type, offsetof(type, attr) + offsetof(type2, attr2), READONLY, PyDoc_STR(docstr)}
 
 /* Helpers for memory allocation */
 #define CALLOC(ptr, num, size, label) \

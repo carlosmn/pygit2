@@ -216,13 +216,7 @@ typedef struct {
 /* git_transfer_progress */
 typedef struct {
     PyObject_HEAD
-    unsigned int total_objects;
-    unsigned int indexed_objects;
-    unsigned int received_objects;
-    unsigned int local_objects;
-    unsigned int total_deltas;
-    unsigned int indexed_deltas;
-    size_t received_bytes;
+    git_transfer_progress tp;
 } TransferProgress;
 
 /* git_blame */
