@@ -51,11 +51,28 @@ class Repository2(object):
 
     @property
     def path(self):
+        """The normalized path to the git repository"""
         return ffi.string(C.git_repository_path(self._repo))
 
     @property
+    def is_empty(self):
+        return bool(C.git_repository_is_empty(self._repo))
+
+    @property
+    def is_shallow(self):
+        return bool(C.git_repository_is_shallow(self._repo))
+
+    @property
     def workdir(self):
-        return ffi.string(C.git_repository_workdir(self._repo))
+        """The normalized path to the working directory of the repository.
+
+        If the repository is bare, None will be returned.
+        """
+        cstr = C.git_repository_workdir(self._repo)
+        if cstr == ffi.NULL:
+            return None
+        else:
+            return ffi.string(cstr)
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, self.path)

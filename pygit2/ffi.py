@@ -40,11 +40,24 @@ ffi = FFI()
 ffi.cdef("""
 void git_libgit2_version(int *, int *, int *);
 
+#define GIT_OID_RAWSZ ...
+
+typedef struct git_oid {
+	unsigned char id[20];
+} git_oid;
+
+int git_oid_fromstr(git_oid *out, const char *str);
+void git_oid_fmt(char *out, const git_oid *id);
+int git_oid_cmp(const git_oid *a, const git_oid *b);
+
 typedef struct git_repository git_repository;
 
 int git_repository_open(git_repository **, const char *);
 const char *git_repository_path(git_repository *);
 const char *git_repository_workdir(git_repository *);
+int git_repository_is_bare(git_repository *repo);
+int git_repository_is_empty(git_repository *repo);
+int git_repository_is_shallow(git_repository *repo);
 void git_repository_free(git_repository *);
 """)
 
