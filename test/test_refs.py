@@ -33,13 +33,13 @@ import unittest
 
 from pygit2 import GitError, GIT_REF_OID, GIT_REF_SYMBOLIC
 from . import utils
-
+import pygit2.repository
 
 LAST_COMMIT = '2be5719152d4f82c7302b1c0932d8e5f0a4a0e98'
 
 
 
-class ReferencesTest(utils.RepoTestCase):
+class ReferencesTest(utils.NewRepoTestCase):
 
     def test_list_all_references(self):
         repo = self.repo
@@ -60,6 +60,7 @@ class ReferencesTest(utils.RepoTestCase):
 
     def test_lookup_reference(self):
         repo = self.repo
+        repo = pygit2.repository.Repository2(self.repo.path)
 
         # Raise KeyError ?
         self.assertRaises(KeyError, repo.lookup_reference, 'refs/foo')
@@ -70,25 +71,29 @@ class ReferencesTest(utils.RepoTestCase):
 
 
     def test_reference_get_sha(self):
-        reference = self.repo.lookup_reference('refs/heads/master')
+        repo = pygit2.repository.Repository2(self.repo.path)
+        reference = repo.lookup_reference('refs/heads/master')
         self.assertEqual(reference.target.hex, LAST_COMMIT)
 
 
     def test_reference_set_sha(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
-        reference = self.repo.lookup_reference('refs/heads/master')
+        repo = pygit2.repository.Repository2(self.repo.path)
+        reference = repo.lookup_reference('refs/heads/master')
         reference.target = NEW_COMMIT
         self.assertEqual(reference.target.hex, NEW_COMMIT)
 
     def test_reference_set_sha_prefix(self):
         NEW_COMMIT = '5ebeeebb320790caf276b9fc8b24546d63316533'
-        reference = self.repo.lookup_reference('refs/heads/master')
+        repo = pygit2.repository.Repository2(self.repo.path)
+        reference = repo.lookup_reference('refs/heads/master')
         reference.target = NEW_COMMIT[0:6]
         self.assertEqual(reference.target.hex, NEW_COMMIT)
 
 
     def test_reference_get_type(self):
-        reference = self.repo.lookup_reference('refs/heads/master')
+        repo = pygit2.repository.Repository2(self.repo.path)
+        reference = repo.lookup_reference('refs/heads/master')
         self.assertEqual(reference.type, GIT_REF_OID)
 
 

@@ -40,6 +40,37 @@ from _pygit2 import Reference, Tree, Commit, Blob
 # ffi
 from .ffi import ffi, C, to_str
 
+def expand_id(repo, short_id):
+    if len(short_id) == GIT_OID_HEXSZ:
+        return short_id
+
+    codb = ffi.new("git_odb **")
+    err = C.git_repository_odb(codb, repo)
+    if err < 0:
+        raise Exception(err)
+
+    # get the short id inot a git_oid
+    l = len(short_id)
+    if l % 2 == 1:
+        l -= 1
+
+    coid = ffi.new("git_oid *")
+    buf = ffi.buffer(coid)
+    buf[:int(l/2)] = binascii.unhexlify(short_id)
+
+    cobj = ffi.new("git_odb_object **")
+    err = C.git_odb_read_prefix(cobj, codb[0], coid, l)
+    C.git_odb_free(codb[0])
+    if err < 0:
+        raise Exception(err)
+
+    long_id = ffi.new("git_oid *")
+    buf = ffi.buffer(long_id)
+    buf = ffi.buffer(C.git_odb_object_id(cobj[0]))
+    C.git_odb_object_free(cobj[0])
+
+    return binascii.hexlify(buf).decode()
+
 @total_ordering
 class Oid(object):
 
@@ -71,6 +102,10 @@ class Oid(object):
     @property
     def raw(self):
         return bytes(self._buf)
+
+    @property
+    def hex(self):
+        return str(self)
 
     def __hash__(self):
         return hash(str(self))

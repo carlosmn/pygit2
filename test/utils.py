@@ -37,6 +37,7 @@ import unittest
 import hashlib
 
 import pygit2
+import pygit2.repository
 
 
 def force_rm_handle(remove_path, path, excinfo):
@@ -159,3 +160,8 @@ class DirtyRepoTestCase(AutoRepoTestCase):
 class EmptyRepoTestCase(AutoRepoTestCase):
 
     repo_spec = 'tar', 'emptyrepo'
+
+class NewRepoTestCase(RepoTestCase):
+    def setUp(self):
+        super(NewRepoTestCase, self).setUp()
+        self.repo = pygit2.repository.Repository2(self.repo.path)

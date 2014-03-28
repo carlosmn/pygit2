@@ -38,6 +38,8 @@ from _pygit2 import Reference, Tree, Commit, Blob
 # ffi
 from .ffi import ffi, C, to_str
 
+from .reference import Reference as Reference2
+
 class Repository2(object):
 
     _repo = None
@@ -73,6 +75,16 @@ class Repository2(object):
             return None
         else:
             return ffi.string(cstr)
+
+    def lookup_reference(self, name):
+        cref = ffi.new("git_reference **")
+        err = C.git_reference_lookup(cref, self._repo, to_str(name))
+        if err == C.GIT_ENOTFOUND:
+            raise KeyError(name)
+        elif err < 0:
+            raise Exception("dunno")
+
+        return Reference2(self, cref)
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, self.path)

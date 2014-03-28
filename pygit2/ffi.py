@@ -28,9 +28,9 @@
 from cffi import FFI
 import sys
 
-if sys.version_info.major < 2:
+if sys.version_info.major < 3:
     def to_str(s):
-        return s
+        return str(s)
 else:
     def to_str(s):
         return bytes(s, 'utf-8')
@@ -39,6 +39,26 @@ ffi = FFI()
 
 ffi.cdef("""
 void git_libgit2_version(int *, int *, int *);
+
+typedef enum {
+	GIT_OK = 0,
+	GIT_ERROR = -1,
+	GIT_ENOTFOUND = -3,
+	GIT_EEXISTS = -4,
+	GIT_EAMBIGUOUS = -5,
+	GIT_EBUFS = -6,
+	GIT_EUSER = -7,
+	GIT_EBAREREPO = -8,
+	GIT_EUNBORNBRANCH = -9,
+	GIT_EUNMERGED = -10,
+	GIT_ENONFASTFORWARD = -11,
+	GIT_EINVALIDSPEC = -12,
+	GIT_EMERGECONFLICT = -13,
+	GIT_ELOCKED = -14,
+
+	GIT_PASSTHROUGH = -30,
+	GIT_ITEROVER = -31,
+} git_error_code;
 
 #define GIT_OID_RAWSZ ...
 
@@ -51,6 +71,7 @@ void git_oid_fmt(char *out, const git_oid *id);
 int git_oid_cmp(const git_oid *a, const git_oid *b);
 
 typedef struct git_repository git_repository;
+typedef struct git_odb git_odb;
 
 int git_repository_open(git_repository **, const char *);
 const char *git_repository_path(git_repository *);
@@ -58,7 +79,35 @@ const char *git_repository_workdir(git_repository *);
 int git_repository_is_bare(git_repository *repo);
 int git_repository_is_empty(git_repository *repo);
 int git_repository_is_shallow(git_repository *repo);
+int git_repository_odb(git_odb **out, git_repository *repo);
 void git_repository_free(git_repository *);
+
+typedef enum {
+	GIT_REF_INVALID = 0,
+	GIT_REF_OID = 1,
+	GIT_REF_SYMBOLIC = 2,
+} git_ref_t;
+
+typedef struct git_reference git_reference;
+int git_reference_lookup(git_reference **out, git_repository *repo, const char *name);
+const char * git_reference_name(const git_reference *ref);
+git_ref_t git_reference_type(const git_reference *ref);
+const git_oid * git_reference_target(const git_reference *ref);
+const char * git_reference_symbolic_target(const git_reference *ref);
+int git_reference_set_target(git_reference **out,
+	git_reference *ref,
+	const git_oid *id);
+int git_reference_symbolic_set_target(git_reference **out,
+	git_reference *ref,
+	const char *target);
+
+void git_reference_free(git_reference *ref);
+
+typedef struct git_odb_object git_odb_object;
+int git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);
+void git_odb_free(git_odb *db);
+void git_odb_object_free(git_odb_object *object);
+const git_oid * git_odb_object_id(git_odb_object *object);
 """)
 
 C = ffi.verify("#include <git2.h>", libraries=["git2"])
