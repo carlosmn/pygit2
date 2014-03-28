@@ -38,6 +38,15 @@ from .version import __version__
 from .settings import Settings
 from .credentials import *
 
+# ffi API
+from .ffi import ffi, C
+
+def libgit2_version():
+    ver = ffi.new("int [3]")
+    C.git_libgit2_version(ver, ver+1, ver+2)
+
+    return ver[0], ver[1], ver[2]
+
 def init_repository(path, bare=False):
     """
     Creates a new Git repository in the given *path*.

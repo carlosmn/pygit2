@@ -35,6 +35,34 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
 
+# ffi
+from .ffi import ffi, C, to_str
+
+class Repository2(object):
+
+    _repo = None
+
+    def __init__(self, path):
+        crepo = ffi.new("git_repository **")
+        if C.git_repository_open(crepo, to_str(path)):
+            raise "oops"
+        self._crepo = crepo
+        self._repo = crepo[0] # to get the pointer itself
+
+    @property
+    def path(self):
+        return ffi.string(C.git_repository_path(self._repo))
+
+    @property
+    def workdir(self):
+        return ffi.string(C.git_repository_workdir(self._repo))
+
+    def __repr__(self):
+        return "%s(%s)" % (type(self).__name__, self.path)
+
+    def __del__(self):
+        if self._repo:
+            C.git_repository_free(self._repo)
 
 class Repository(_Repository):
 
