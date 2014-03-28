@@ -39,6 +39,7 @@ from _pygit2 import Reference, Tree, Commit, Blob
 from .ffi import ffi, C, to_str
 
 from .reference import Reference as Reference2
+from .oid import Oid, expand_id
 
 class Repository2(object):
 
@@ -84,6 +85,42 @@ class Repository2(object):
         elif err < 0:
             raise Exception("dunno")
 
+        return Reference2(self, cref)
+
+    def create_reference(self, name, target, force=False):
+        """
+        Create a new reference "name" which points to an object or to another
+        reference.
+
+        Based on the type and value of the target parameter, this method tries
+        to guess whether it is a direct or a symbolic reference.
+
+        Keyword arguments:
+
+        force
+            If True references will be overridden, otherwise (the default) an
+            exception is raised.
+
+        Examples::
+
+            repo.create_reference('refs/heads/foo', repo.head.hex)
+            repo.create_reference('refs/tags/foo', 'refs/heads/master')
+            repo.create_reference('refs/tags/foo', 'bbb78a9cec580')
+        """
+        direct = (
+            type(target) is Oid
+            or (
+                all(c in hexdigits for c in target)
+                and GIT_OID_MINPREFIXLEN <= len(target) <= GIT_OID_HEXSZ))
+
+        cref = ffi.new('git_reference **')
+        if direct:
+            err = C.git_reference_create(cref, self._repo, to_str(name), Oid(hex=expand_id(self._repo, target))._oid, force)
+        else:
+            err = C.git_reference_symbolic_create(cref, self._repo, to_str(name), to_str(target), force)
+
+        if err < 0:
+            raise Exception(err)
         return Reference2(self, cref)
 
     def __repr__(self):

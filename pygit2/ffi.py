@@ -101,6 +101,11 @@ int git_reference_symbolic_set_target(git_reference **out,
 	git_reference *ref,
 	const char *target);
 
+int git_reference_create(git_reference **out, git_repository *repo, const char *name, const git_oid *id, int force);
+int git_reference_symbolic_create(git_reference **out, git_repository *repo, const char *name, const char *target, int force);
+const char * git_reference_shorthand(git_reference *ref);
+int git_reference_dwim(git_reference **out, git_repository *repo, const char *shorthand);
+int git_reference_resolve(git_reference **out, const git_reference *ref);
 void git_reference_free(git_reference *ref);
 
 typedef struct git_odb_object git_odb_object;
