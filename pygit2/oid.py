@@ -88,16 +88,19 @@ class Oid(object):
                 raise ValueError(raw)
 
             buf[:] = raw[:]
+            l = C.GIT_OID_RAWSZ
         else:
             if len(hex) > 40:
                 raise ValueError("too long")
             if version_info.major == 3 and type(hex) != str:
                     raise TypeError(hex)
 
-            buf[:] = binascii.unhexlify(hex)
+            l = len(hex)
+            buf[:int(l/2)] = binascii.unhexlify(hex)
 
         self._oid = oid
         self._buf = buf
+        self._len = int(l/2)
 
     @property
     def raw(self):

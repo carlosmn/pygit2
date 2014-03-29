@@ -41,6 +41,7 @@ from .ffi import ffi, C, to_str
 from .reference import Reference as Reference2
 from .oid import Oid, expand_id
 from .errors import check_error
+from .object import wrap_object
 
 class Repository2(object):
 
@@ -141,6 +142,15 @@ class Repository2(object):
 
         check_error(err)
         return Reference2(self, cref)
+
+    def __getitem__(self, key):
+        if type(key) == str:
+            key = Oid(hex=key)
+
+        cobj = ffi.new('git_object **')
+        err = C.git_object_lookup_prefix(cobj, self._repo, key._oid, key._len, C.GIT_OBJ_ANY)
+        check_error(err)
+        return wrap_object(self, cobj)
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, self.path)

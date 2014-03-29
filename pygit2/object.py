@@ -54,10 +54,18 @@ def wrap_object(repo, cobj):
 
 class Object(object):
 
-    def __init__(repo, cobj):
+    def __init__(self, repo, cobj):
         self._repo = repo
         self._cobj = cobj
         self._obj = cobj[0]
+
+    @property
+    def id(self):
+        return Oid(raw=ffi.buffer(C.git_object_id(self._obj)))
+
+    @property
+    def hex(self):
+        return self.id.hex
 
 class Commit(Object):
     pass
