@@ -50,7 +50,7 @@ def wrap_object(repo, cobj):
         return Blob(repo, cobj)
     elif objtype == C.GIT_OBJ_TREE:
         return Tree(repo, cobj)
-    elif objtype == C.GIT_OBJ_Tag:
+    elif objtype == C.GIT_OBJ_TAG:
         return Tag(repo, cobj)
 
 def object_type(target_type):
@@ -86,6 +86,10 @@ class Object(object):
     def hex(self):
         return self.id.hex
 
+    @property
+    def type(self):
+        return C.git_object_type(self._obj)
+
     def peel(self, target_type):
         target = object_type(target_type)
         cobj = ffi.new('git_object **')
@@ -112,6 +116,14 @@ class Commit(Object):
         return lst
 
     @property
+    def parent_ids(self):
+        count = C.git_commit_parentcount(self._commit)
+        lst = [None]*count
+        for i in range(count):
+            lst[i] = Oid(raw=ffi.buffer(C.git_commit_parent_id(self._commit, i)))
+        return lst
+
+    @property
     def message_encoding(self):
         encoding = C.git_commit_message_encoding(self._commit)
         if encoding:
@@ -120,7 +132,12 @@ class Commit(Object):
 
     @property
     def message(self):
-        return ffi.string(C.git_commit_message(self._commit)).decode()
+        encoding = self.message_encoding if self.message_encoding else 'utf-8'
+        return ffi.string(C.git_commit_message(self._commit)).decode(encoding)
+
+    @property
+    def raw_message(self):
+        return bytes(ffi.string(C.git_commit_message(self._commit)))
 
     @property
     def commit_time(self):
@@ -129,12 +146,18 @@ class Commit(Object):
     @property
     def committer(self):
         sig = C.git_commit_committer(self._commit)
-        return Signature(owner=self, sig=sig)
+        encoding = self.message_encoding if self.message_encoding else 'utf-8'
+        return Signature.from_c(owner=self, sig=sig, encoding=encoding)
 
     @property
     def author(self):
         sig = C.git_commit_author(self._commit)
-        return Signature(owner=self, sig=sig)
+        encoding = self.message_encoding if self.message_encoding else 'utf-8'
+        return Signature.from_c(owner=self, sig=sig, encoding=encoding)
+
+    @property
+    def tree_id(self):
+        return Oid(raw=ffi.buffer(C.git_commit_tree_id(self._commit)))
 
     @property
     def tree(self):

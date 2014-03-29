@@ -29,14 +29,21 @@ from cffi import FFI
 import sys
 
 if sys.version_info.major < 3:
-    def to_str(s):
-        return str(s)
+    def to_str(s, encoding='utf-8', errors='strict'):
+        if s == ffi.NULL:
+            return ffi.NULL
+        if encoding == ffi.NULL:
+            encoding = 'utf-8'
+        if type(s) == unicode:
+            return s.encode(encoding, errors)
+
+        return s
 else:
-    def to_str(s):
+    def to_str(s, encoding='utf-8', errors='strict'):
         if type(s) == bytes:
             return s
         else:
-            return bytes(s, 'utf-8')
+            return bytes(s, encoding, errors)
 
 ffi = FFI()
 
@@ -179,12 +186,29 @@ unsigned int git_commit_parentcount(const git_commit *commit);
 int git_commit_parent(git_commit **out,
 	const git_commit *commit,
 	unsigned int n);
+const git_oid * git_commit_parent_id(const git_commit *commit,
+	unsigned int n);
 const char * git_commit_message_encoding(const git_commit *commit);
 const char * git_commit_message(const git_commit *commit);
+const char * git_commit_message_raw(const git_commit *commit);
 git_time_t git_commit_time(const git_commit *commit);
 const git_signature * git_commit_committer(const git_commit *commit);
 const git_signature * git_commit_author(const git_commit *commit);
+const git_oid * git_commit_tree_id(const git_commit *commit);
 int git_commit_tree(git_tree **tree_out, const git_commit *commit);
+int git_commit_create(git_oid *id,
+	git_repository *repo,
+	const char *update_ref,
+	const git_signature *author,
+	const git_signature *committer,
+	const char *message_encoding,
+	const char *message,
+	const git_tree *tree,
+	int parent_count,
+	const git_commit *parents[]);
+
+int git_signature_new(git_signature **out, const char *name, const char *email, git_time_t time, int offset);
+void git_signature_free(git_signature *sig);
 
 """)
 

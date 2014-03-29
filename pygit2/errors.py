@@ -30,7 +30,6 @@ from string import hexdigits
 
 # ffi
 from .ffi import ffi, C, to_str
-from .oid import Oid, expand_id
 
 from _pygit2 import GitError
 

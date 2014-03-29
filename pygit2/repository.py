@@ -57,7 +57,7 @@ class Repository2(object):
     @property
     def path(self):
         """The normalized path to the git repository"""
-        return ffi.string(C.git_repository_path(self._repo))
+        return ffi.string(C.git_repository_path(self._repo)).decode()
 
     @property
     def is_empty(self):
@@ -77,7 +77,7 @@ class Repository2(object):
         if cstr == ffi.NULL:
             return None
         else:
-            return ffi.string(cstr)
+            return ffi.string(cstr).deocde()
 
     @property
     def head(self):
@@ -151,6 +151,20 @@ class Repository2(object):
         err = C.git_object_lookup_prefix(cobj, self._repo, key._oid, key._len, C.GIT_OBJ_ANY)
         check_error(err)
         return wrap_object(self, cobj)
+
+    def create_commit(self, reference, author, committer, message, tree, parents, encoding=None):
+        tree = self[expand_id(self._repo, tree)]
+        parents = [self[expand_id(self._repo, parent_id)] for parent_id in parents]
+        if not reference:
+            reference = ffi.NULL
+        if not encoding:
+            encoding = ffi.NULL
+        coid = ffi.new('git_oid *')
+        err = C.git_commit_create(coid, self._repo, to_str(reference), author._sig, committer._sig,
+                                  to_str(encoding), to_str(message, encoding),
+                                  tree._tree, len(parents), [p._commit for p in parents])
+        check_error(err)
+        return Oid(raw=ffi.buffer(coid))
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, self.path)

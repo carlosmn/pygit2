@@ -31,8 +31,10 @@ from __future__ import absolute_import
 from __future__ import unicode_literals
 import unittest
 
-from pygit2 import GIT_OBJ_COMMIT, Signature, Oid
+from pygit2 import GIT_OBJ_COMMIT
 from . import utils
+from pygit2.oid import Oid
+from pygit2.signature import Signature
 
 # pypy raises TypeError on writing to read-only, so we need to check
 # and change the test accordingly

@@ -37,8 +37,9 @@ from _pygit2 import Oid, GIT_OID_HEXSZ, GIT_OID_MINPREFIXLEN
 from _pygit2 import GIT_CHECKOUT_SAFE_CREATE, GIT_DIFF_NORMAL
 from _pygit2 import Reference, Tree, Commit, Blob
 
-# ffi
+# ffi version
 from .ffi import ffi, C, to_str
+from .errors import check_error
 
 def expand_id(repo, short_id):
     if len(short_id) == GIT_OID_HEXSZ:
@@ -56,13 +57,12 @@ def expand_id(repo, short_id):
 
     coid = ffi.new("git_oid *")
     buf = ffi.buffer(coid)
-    buf[:int(l/2)] = binascii.unhexlify(short_id)
+    buf[:int(l/2)] = binascii.unhexlify(short_id[:l])
 
     cobj = ffi.new("git_odb_object **")
     err = C.git_odb_read_prefix(cobj, codb[0], coid, l)
     C.git_odb_free(codb[0])
-    if err < 0:
-        raise Exception(err)
+    check_error(err)
 
     long_id = ffi.new("git_oid *")
     buf = ffi.buffer(long_id)
