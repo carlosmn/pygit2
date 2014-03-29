@@ -38,9 +38,14 @@ def check_error(err):
     if err >= 0:
         return
 
-    if err == C.GIT_EEXISTS:
-        raise ValueError()
-    elif err == C.GIT_ENOTFOUND:
-        raise KeyError()
+    message = "(no message provided)"
+    giterr = C.giterr_last()
+    if giterr != ffi.NULL:
+        message = ffi.string(giterr.message).decode()
 
-    raise Exception()
+    if err == C.GIT_EEXISTS:
+        raise ValueError(message)
+    elif err == C.GIT_ENOTFOUND:
+        raise KeyError(message)
+
+    raise Exception(message)

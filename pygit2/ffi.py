@@ -61,9 +61,16 @@ typedef enum {
 } git_error_code;
 
 typedef struct {
+	char *message;
+	int klass;
+} git_error;
+
+typedef struct {
 	char **strings;
 	size_t count;
 } git_strarray;
+
+const git_error *giterr_last(void);
 
 #define GIT_OID_RAWSZ ...
 
