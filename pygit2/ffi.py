@@ -33,7 +33,10 @@ if sys.version_info.major < 3:
         return str(s)
 else:
     def to_str(s):
-        return bytes(s, 'utf-8')
+        if type(s) == bytes:
+            return s
+        else:
+            print(type(s))
 
 ffi = FFI()
 
