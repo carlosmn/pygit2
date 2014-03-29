@@ -72,6 +72,19 @@ typedef struct {
 
 const git_error *giterr_last(void);
 
+typedef enum {
+	GIT_OBJ_ANY = -2,
+	GIT_OBJ_BAD = -1,
+	GIT_OBJ__EXT1 = 0,
+	GIT_OBJ_COMMIT = 1,
+	GIT_OBJ_TREE = 2,
+	GIT_OBJ_BLOB = 3,
+	GIT_OBJ_TAG = 4,
+	GIT_OBJ__EXT2 = 5,
+	GIT_OBJ_OFS_DELTA = 6,
+	GIT_OBJ_REF_DELTA = 7,
+} git_otype;
+
 #define GIT_OID_RAWSZ ...
 
 typedef struct git_oid {
@@ -84,6 +97,7 @@ int git_oid_cmp(const git_oid *a, const git_oid *b);
 
 typedef struct git_reference git_reference;
 typedef struct git_repository git_repository;
+typedef struct git_object git_object;
 typedef struct git_odb git_odb;
 
 int git_repository_open(git_repository **, const char *);
@@ -126,6 +140,9 @@ int git_reference_delete(git_reference *ref);
 void git_reference_free(git_reference *ref);
 
 void git_strarray_free(git_strarray *);
+
+int git_object_lookup(git_object **, git_repository *, git_oid *, git_otype type);
+git_otype git_object_type(git_object *);
 
 typedef struct git_odb_object git_odb_object;
 int git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);
