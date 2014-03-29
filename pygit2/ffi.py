@@ -36,7 +36,7 @@ else:
         if type(s) == bytes:
             return s
         else:
-            print(type(s))
+            return bytes(s, 'utf-8')
 
 ffi = FFI()
 

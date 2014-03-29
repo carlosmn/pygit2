@@ -75,6 +75,8 @@ class Reference(object):
         else:
             self._target_symbolic_set(target)
 
+    def get_object(self):
+        return self._repo[self.target]
 
     @property
     def shorthand(self):
