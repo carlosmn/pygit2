@@ -60,6 +60,11 @@ typedef enum {
 	GIT_ITEROVER = -31,
 } git_error_code;
 
+typedef struct {
+	char **strings;
+	size_t count;
+} git_strarray;
+
 #define GIT_OID_RAWSZ ...
 
 typedef struct git_oid {
@@ -70,6 +75,7 @@ int git_oid_fromstr(git_oid *out, const char *str);
 void git_oid_fmt(char *out, const git_oid *id);
 int git_oid_cmp(const git_oid *a, const git_oid *b);
 
+typedef struct git_reference git_reference;
 typedef struct git_repository git_repository;
 typedef struct git_odb git_odb;
 
@@ -80,6 +86,7 @@ int git_repository_is_bare(git_repository *repo);
 int git_repository_is_empty(git_repository *repo);
 int git_repository_is_shallow(git_repository *repo);
 int git_repository_odb(git_odb **out, git_repository *repo);
+int git_repository_head(git_reference **, git_repository *repo);
 void git_repository_free(git_repository *);
 
 typedef enum {
@@ -88,7 +95,6 @@ typedef enum {
 	GIT_REF_SYMBOLIC = 2,
 } git_ref_t;
 
-typedef struct git_reference git_reference;
 int git_reference_lookup(git_reference **out, git_repository *repo, const char *name);
 const char * git_reference_name(const git_reference *ref);
 git_ref_t git_reference_type(const git_reference *ref);
@@ -106,7 +112,13 @@ int git_reference_symbolic_create(git_reference **out, git_repository *repo, con
 const char * git_reference_shorthand(git_reference *ref);
 int git_reference_dwim(git_reference **out, git_repository *repo, const char *shorthand);
 int git_reference_resolve(git_reference **out, const git_reference *ref);
+int git_reference_rename(git_reference **out, git_reference *ref, const char *new_name, int force);
+int git_reference_list(git_strarray *, git_repository *);
+
+int git_reference_delete(git_reference *ref);
 void git_reference_free(git_reference *ref);
+
+void git_strarray_free(git_strarray *);
 
 typedef struct git_odb_object git_odb_object;
 int git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);

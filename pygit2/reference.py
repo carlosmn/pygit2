@@ -31,6 +31,9 @@ from string import hexdigits
 # ffi
 from .ffi import ffi, C, to_str
 from .oid import Oid, expand_id
+from .errors import check_error
+
+from _pygit2 import GitError
 
 def guess_oid(repo, id):
     if type(id) == bytes:
@@ -48,14 +51,17 @@ class Reference(object):
 
     @property
     def name(self):
+        self._assert_valid()
         return ffi.string(C.git_reference_name(self._ref)).decode()
 
     @property
     def type(self):
+        self._assert_valid()
         return C.git_reference_type(self._ref)
 
     @property
     def target(self):
+        self._assert_valid()
         if C.git_reference_type(self._ref) == C.GIT_REF_OID:
             return self._target_direct()
         else:
@@ -63,6 +69,7 @@ class Reference(object):
 
     @target.setter
     def target(self, target):
+        self._assert_valid()
         if self.type == C.GIT_REF_OID:
             self._target_direct_set(target)
         else:
@@ -71,21 +78,49 @@ class Reference(object):
 
     @property
     def shorthand(self):
+        self._assert_valid()
         return ffi.string(C.git_reference_shorthand(self._ref)).decode()
 
     def resolve(self):
+        self._assert_valid()
         if self.type == C.GIT_REF_OID:
             return self
 
         cref = ffi.new('git_reference **')
         err = C.git_reference_resolve(cref, self._ref)
-        if err < 0:
-            raise Exception(err)
+        check_error(err)
 
         return Reference(self._repo, cref)
 
-    def __del__(self):
+    def rename(self, new_name, force=False):
+        self._assert_valid()
+        cref = ffi.new('git_reference **')
+        err = C.git_reference_rename(cref, self._ref, to_str(new_name), force)
+        check_error(err)
+
+        self._swap(cref)
+
+    def delete(self):
+        self._assert_valid()
+        err = C.git_reference_delete(self._ref)
+        check_error(err)
+
         C.git_reference_free(self._ref)
+        self._ref = None
+        del self._cref
+
+    def __del__(self):
+        if self._ref:
+            C.git_reference_free(self._ref)
+
+    def _assert_valid(self):
+        if not self._ref:
+            raise GitError("deleted reference")
+
+    def _swap(self, cref):
+        C.git_reference_free(self._ref)
+        self._cref = cref
+        self._ref = cref[0]
 
     def _target_direct(self):
         return Oid(raw=ffi.buffer(C.git_reference_target(self._ref)))
@@ -93,12 +128,9 @@ class Reference(object):
     def _target_direct_set(self, target):
         cref = ffi.new("git_reference **")
         err = C.git_reference_set_target(cref, self._ref, guess_oid(self._repo._repo, target)._oid)
-        if err < 0:
-            raise Exception(err)
+        check_error(err)
 
-        C.git_reference_free(self._ref)
-        self._cref = cref
-        self._ref = cref[0]
+        self._swap(cref)
         
     def _target_symbolic(self):
         return ffi.string(C.git_reference_symbolic_target(self._ref)).decode()
@@ -106,9 +138,6 @@ class Reference(object):
     def _target_symbolic_set(self, target):
         cref = ffi.new("git_reference **")
         err = C.git_reference_symbolic_set_target(cref, self._ref, to_str(target))
-        if err < 0:
-            raise Exception(err)
+        check_error(err)
 
-        C.git_reference_free(self._ref)
-        self._cref = cref
-        self._ref = cref[0]
+        self._swap(cref)

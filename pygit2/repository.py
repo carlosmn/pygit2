@@ -40,6 +40,7 @@ from .ffi import ffi, C, to_str
 
 from .reference import Reference as Reference2
 from .oid import Oid, expand_id
+from .errors import check_error
 
 class Repository2(object):
 
@@ -77,6 +78,14 @@ class Repository2(object):
         else:
             return ffi.string(cstr)
 
+    @property
+    def head(self):
+        cref = ffi.new('git_reference **')
+        err = C.git_repository_head(cref, self._repo)
+        check_error(err)
+
+        return Reference2(self, cref)
+
     def lookup_reference(self, name):
         cref = ffi.new("git_reference **")
         err = C.git_reference_lookup(cref, self._repo, to_str(name))
@@ -86,6 +95,17 @@ class Repository2(object):
             raise Exception("dunno")
 
         return Reference2(self, cref)
+
+    def listall_references(self):
+        strarray = ffi.new('git_strarray *')
+        err = C.git_reference_list(strarray, self._repo)
+        if err < 0:
+            raise Exception(err)
+
+        for i in range(strarray.count):
+            yield ffi.string(strarray.strings[i]).decode()
+
+        C.git_strarray_free(strarray)
 
     def create_reference(self, name, target, force=False):
         """
@@ -119,8 +139,7 @@ class Repository2(object):
         else:
             err = C.git_reference_symbolic_create(cref, self._repo, to_str(name), to_str(target), force)
 
-        if err < 0:
-            raise Exception(err)
+        check_error(err)
         return Reference2(self, cref)
 
     def __repr__(self):
