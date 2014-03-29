@@ -43,9 +43,11 @@ def check_error(err):
     if giterr != ffi.NULL:
         message = ffi.string(giterr.message).decode()
 
-    if err == C.GIT_EEXISTS:
+    if err in [C.GIT_EEXISTS, C.GIT_EINVALIDSPEC, C.GIT_EEXISTS, C.GIT_EAMBIGUOUS]:
         raise ValueError(message)
     elif err == C.GIT_ENOTFOUND:
         raise KeyError(message)
+    elif err == C.GIT_EINVALIDSPEC:
+        raise ValueError(message)
 
     raise Exception(message)

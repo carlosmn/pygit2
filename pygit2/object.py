@@ -52,6 +52,21 @@ def wrap_object(repo, cobj):
     elif objtype == C.GIT_OBJ_Tag:
         return Tag(repo, cobj)
 
+def object_type(target_type):
+    if type(target_type) == int:
+        return target_type
+
+    if target_type == Commit:
+        return C.GIT_OBJ_COMMIT
+    if target_type == Tree:
+        return C.GIT_OBJ_TREE
+    if target_type == Blob:
+        return C.GIT_OBJ_BLOB
+    if target_type == Tag:
+        return C.GIT_OBJ_TAG
+
+    raise ValueError("invalid target type")
+
 class Object(object):
 
     def __init__(self, repo, cobj):
@@ -66,6 +81,14 @@ class Object(object):
     @property
     def hex(self):
         return self.id.hex
+
+    def peel(self, target_type):
+        target = object_type(target_type)
+        cobj = ffi.new('git_object **')
+        err = C.git_object_peel(cobj, self._obj, target)
+        check_error(err)
+
+        return wrap_object(self._repo, cobj)
 
 class Commit(Object):
     pass

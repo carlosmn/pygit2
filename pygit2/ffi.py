@@ -148,7 +148,9 @@ int git_object_lookup(git_object **, git_repository *, git_oid *, git_otype type
 int git_object_lookup_prefix(git_object **, git_repository *, git_oid *, size_t len, git_otype type);
 git_otype git_object_type(git_object *);
 git_oid *git_object_id(git_object *);
-
+int git_object_peel(git_object **peeled,
+	const git_object *object,
+	git_otype target_type);
 typedef struct git_odb_object git_odb_object;
 int git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);
 void git_odb_free(git_odb *db);

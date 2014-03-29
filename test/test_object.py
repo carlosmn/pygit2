@@ -33,7 +33,8 @@ from os.path import dirname, join
 import unittest
 
 import pygit2
-from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG, Tree, Tag
+from pygit2 import GIT_OBJ_TREE, GIT_OBJ_TAG
+from pygit2.object import Tree, Tag
 from . import utils
 
 
@@ -45,7 +46,7 @@ bonjour le monde
 BLOB_NEW_CONTENT = b'foo bar\n'
 BLOB_FILE_CONTENT = b'bye world\n'
 
-class ObjectTest(utils.RepoTestCase):
+class ObjectTest(utils.NewRepoTestCase):
 
     def test_peel_commit(self):
         # start by looking up the commit
