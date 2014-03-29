@@ -45,7 +45,7 @@ BLOB_NEW_CONTENT = b'foo bar\n'
 BLOB_FILE_CONTENT = b'bye world\n'
 
 
-class BlobTest(utils.RepoTestCase):
+class BlobTest(utils.NewRepoTestCase):
 
     def test_read_blob(self):
         blob = self.repo[BLOB_SHA]

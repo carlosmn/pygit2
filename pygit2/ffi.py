@@ -88,6 +88,18 @@ typedef enum {
 	GIT_OBJ_REF_DELTA = 7,
 } git_otype;
 
+typedef int64_t git_time_t;
+typedef struct git_time {
+	git_time_t time;
+	int offset;
+} git_time;
+
+typedef struct git_signature {
+	char *name;
+	char *email;
+	git_time when;
+} git_signature;
+
 #define GIT_OID_RAWSZ ...
 
 typedef struct git_oid {
@@ -101,7 +113,11 @@ int git_oid_cmp(const git_oid *a, const git_oid *b);
 typedef struct git_reference git_reference;
 typedef struct git_repository git_repository;
 typedef struct git_object git_object;
+typedef struct git_commit git_commit;
 typedef struct git_odb git_odb;
+typedef ... git_tree;
+typedef ... git_odb_object;
+
 
 int git_repository_open(git_repository **, const char *);
 const char *git_repository_path(git_repository *);
@@ -151,11 +167,25 @@ git_oid *git_object_id(git_object *);
 int git_object_peel(git_object **peeled,
 	const git_object *object,
 	git_otype target_type);
-typedef struct git_odb_object git_odb_object;
+
+void git_object_free(git_object *object);
+
 int git_odb_read_prefix(git_odb_object **out, git_odb *db, const git_oid *short_id, size_t len);
 void git_odb_free(git_odb *db);
 void git_odb_object_free(git_odb_object *object);
 const git_oid * git_odb_object_id(git_odb_object *object);
+
+unsigned int git_commit_parentcount(const git_commit *commit);
+int git_commit_parent(git_commit **out,
+	const git_commit *commit,
+	unsigned int n);
+const char * git_commit_message_encoding(const git_commit *commit);
+const char * git_commit_message(const git_commit *commit);
+git_time_t git_commit_time(const git_commit *commit);
+const git_signature * git_commit_committer(const git_commit *commit);
+const git_signature * git_commit_author(const git_commit *commit);
+int git_commit_tree(git_tree **tree_out, const git_commit *commit);
+
 """)
 
 C = ffi.verify("#include <git2.h>", libraries=["git2"])

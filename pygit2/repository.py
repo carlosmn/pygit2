@@ -144,7 +144,7 @@ class Repository2(object):
         return Reference2(self, cref)
 
     def __getitem__(self, key):
-        if type(key) == str:
+        if type(key) == str or type(key) == unicode:
             key = Oid(hex=key)
 
         cobj = ffi.new('git_object **')

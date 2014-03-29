@@ -38,6 +38,7 @@ from .ffi import ffi, C, to_str
 from .reference import Reference as Reference2
 from .oid import Oid, expand_id
 from .errors import check_error
+from .signature import Signature
 
 def wrap_object(repo, cobj):
     obj = cobj[0]
@@ -74,6 +75,9 @@ class Object(object):
         self._cobj = cobj
         self._obj = cobj[0]
 
+    def __del__(self):
+        C.git_object_free(self._obj)
+
     @property
     def id(self):
         return Oid(raw=ffi.buffer(C.git_object_id(self._obj)))
@@ -91,13 +95,62 @@ class Object(object):
         return wrap_object(self._repo, cobj)
 
 class Commit(Object):
-    pass
+
+    def __init__(self, repo, cobj):
+        super(Commit, self).__init__(repo, cobj)
+        self._commit = ffi.cast('git_commit *', self._obj)
+
+    @property
+    def parents(self):
+        count = C.git_commit_parentcount(self._commit)
+        lst = [None]*count
+        for i in range(count):
+            cobj = ffi.new('git_commit **')
+            err = C.git_commit_parent(cobj, self._commit, i)
+            check_error(err)
+            lst[i] = Commit(self._repo, ffi.cast('git_object **', cobj))
+        return lst
+
+    @property
+    def message_encoding(self):
+        encoding = C.git_commit_message_encoding(self._commit)
+        if encoding:
+            return ffi.string(encoding).decode()
+        return None
+
+    @property
+    def message(self):
+        return ffi.string(C.git_commit_message(self._commit)).decode()
+
+    @property
+    def commit_time(self):
+        return C.git_commit_time(self._commit)
+
+    @property
+    def committer(self):
+        sig = C.git_commit_committer(self._commit)
+        return Signature(owner=self, sig=sig)
+
+    @property
+    def author(self):
+        sig = C.git_commit_author(self._commit)
+        return Signature(owner=self, sig=sig)
+
+    @property
+    def tree(self):
+        ctree = ffi.new('git_tree **')
+        err = C.git_commit_tree(ctree, self._commit)
+        check_error(err)
+        return Tree(self._repo, ffi.cast('git_object **', ctree))
 
 class Blob(Object):
     pass
 
 class Tree(Object):
-    pass
+
+    def __init__(self, repo, cobj):
+        super(Tree, self).__init__(repo, cobj)
+        self._tree = ffi.cast('git_tree *', self._obj)
 
 class Tag(Object):
     pass

@@ -165,3 +165,8 @@ class NewRepoTestCase(RepoTestCase):
     def setUp(self):
         super(NewRepoTestCase, self).setUp()
         self.repo = pygit2.repository.Repository2(self.repo.path)
+
+class NewBareRepoTestCase(BareRepoTestCase):
+    def setUp(self):
+        super(NewBareRepoTestCase, self).setUp()
+        self.repo = pygit2.repository.Repository2(self.repo.path)
