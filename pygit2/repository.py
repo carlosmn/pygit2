@@ -39,6 +39,7 @@ from _pygit2 import Reference, Tree, Commit, Blob
 from .ffi import ffi, C, to_str
 
 from .reference import Reference as Reference2
+from .reference import Branch
 from .oid import Oid, expand_id
 from .errors import check_error
 from .object import wrap_object
@@ -90,10 +91,7 @@ class Repository2(object):
     def lookup_reference(self, name):
         cref = ffi.new("git_reference **")
         err = C.git_reference_lookup(cref, self._repo, to_str(name))
-        if err == C.GIT_ENOTFOUND:
-            raise KeyError(name)
-        elif err < 0:
-            raise Exception("dunno")
+        check_error(err)
 
         return Reference2(self, cref)
 
@@ -107,6 +105,33 @@ class Repository2(object):
             yield ffi.string(strarray.strings[i]).decode()
 
         C.git_strarray_free(strarray)
+
+    def listall_branches(self, flags=C.GIT_BRANCH_LOCAL):
+        citerator = ffi.new('git_branch_iterator **')
+        err = C.git_branch_iterator_new(citerator, self._repo, flags)
+        check_error(err)
+
+        iterator = citerator[0]
+        try:
+            while True:
+                cref = ffi.new('git_reference **')
+                ckind = ffi.new('git_branch_t *')
+                err = C.git_branch_next(cref, ckind, iterator)
+                check_error(err)
+
+                yield ffi.string(C.git_reference_shorthand(cref[0])).decode()
+        finally:
+            C.git_branch_iterator_free(iterator)
+
+    def lookup_branch(self, name, kind=C.GIT_BRANCH_LOCAL):
+        cref = ffi.new('git_reference **')
+        err = C.git_branch_lookup(cref, self._repo, to_str(name), kind)
+        if err == C.GIT_ENOTFOUND:
+            return None
+
+        check_error(err)
+
+        return Branch(self, cref)
 
     def create_reference(self, name, target, force=False):
         """
@@ -142,6 +167,12 @@ class Repository2(object):
 
         check_error(err)
         return Reference2(self, cref)
+
+    def create_branch(self, name, target, force=False):
+        cref = ffi.new('git_reference **')
+        err = C.git_branch_create(cref, self._repo, to_str(name), target._commit, force)
+        check_error(err)
+        return Branch(self, cref)
 
     def __getitem__(self, key):
         if type(key) == str or type(key) == unicode:

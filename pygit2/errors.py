@@ -48,5 +48,7 @@ def check_error(err):
         raise KeyError(message)
     elif err == C.GIT_EINVALIDSPEC:
         raise ValueError(message)
+    elif err == C.GIT_ITEROVER:
+        raise StopIteration()
 
-    raise Exception(message)
+    raise GitError(message)

@@ -39,7 +39,7 @@ I18N_LAST_COMMIT = '5470a671a80ac3789f1a6a8cefbcf43ce7af0563'
 ORIGIN_MASTER_COMMIT = '784855caf26449a1914d2cf62d12b9374d76ae78'
 
 
-class BranchesTestCase(utils.RepoTestCase):
+class BranchesTestCase(utils.NewRepoTestCase):
     def test_lookup_branch_local(self):
         branch = self.repo.lookup_branch('master')
         self.assertEqual(branch.target.hex, LAST_COMMIT)

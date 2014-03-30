@@ -107,6 +107,11 @@ typedef struct git_signature {
 	git_time when;
 } git_signature;
 
+typedef enum {
+	GIT_BRANCH_LOCAL = 1,
+	GIT_BRANCH_REMOTE = 2,
+} git_branch_t;
+
 #define GIT_OID_RAWSZ ...
 
 typedef struct git_oid {
@@ -124,6 +129,7 @@ typedef struct git_commit git_commit;
 typedef struct git_odb git_odb;
 typedef ... git_tree;
 typedef ... git_odb_object;
+typedef ... git_branch_iterator;
 
 
 int git_repository_open(git_repository **, const char *);
@@ -164,6 +170,31 @@ int git_reference_list(git_strarray *, git_repository *);
 
 int git_reference_delete(git_reference *ref);
 void git_reference_free(git_reference *ref);
+
+int git_branch_lookup(git_reference **out,
+	git_repository *repo,
+	const char *branch_name,
+	git_branch_t branch_type);
+int git_branch_is_head(git_reference *branch);
+int git_branch_name(const char **out,
+		git_reference *ref);
+int git_branch_move(git_reference **out,
+	git_reference *branch,
+	const char *new_branch_name,
+	int force);
+int git_branch_delete(git_reference *branch);
+int git_branch_create(git_reference **out,
+	git_repository *repo,
+	const char *branch_name,
+	const git_commit *target,
+	int force);
+
+int git_branch_iterator_new(git_branch_iterator **out,
+	git_repository *repo,
+	git_branch_t list_flags);
+
+int git_branch_next(git_reference **out, git_branch_t *out_type, git_branch_iterator *iter);
+void git_branch_iterator_free(git_branch_iterator *iter);
 
 void git_strarray_free(git_strarray *);
 

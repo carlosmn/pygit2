@@ -143,3 +143,26 @@ class Reference(object):
         check_error(err)
 
         self._swap(cref)
+
+class Branch(Reference):
+
+    def is_head(self):
+        return bool(C.git_branch_is_head(self._ref))
+
+    @property
+    def branch_name(self):
+        cbuf = ffi.new('char **')
+        err = C.git_branch_name(cbuf, self._ref)
+        check_error(err)
+
+        return ffi.string(cbuf[0]).decode()
+
+    def rename(self, new_name, force=False):
+        cref = ffi.new('git_reference **')
+        err = C.git_branch_move(cref, self._ref, to_str(new_name), force)
+        check_error(err)
+        return Branch(self._repo, cref)
+
+    def delete(self):
+        err = C.git_branch_delete(self._ref)
+        check_error(err)
