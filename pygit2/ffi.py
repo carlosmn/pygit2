@@ -115,6 +115,7 @@ typedef enum {
 #define GIT_SORT_TIME ...
 
 #define GIT_OID_RAWSZ ...
+#define GIT_OID_HEXSZ ...
 
 typedef struct git_oid {
 	unsigned char id[20];
@@ -123,6 +124,7 @@ typedef struct git_oid {
 int git_oid_fromstr(git_oid *out, const char *str);
 void git_oid_fmt(char *out, const git_oid *id);
 int git_oid_cmp(const git_oid *a, const git_oid *b);
+void git_oid_cpy(git_oid *out, const git_oid *src);
 
 typedef struct git_reference git_reference;
 typedef struct git_repository git_repository;

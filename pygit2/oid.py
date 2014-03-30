@@ -43,12 +43,11 @@ from .errors import check_error
 
 def expand_id(repo, short_id):
     if len(short_id) == GIT_OID_HEXSZ:
-        return short_id
+        return Oid(hex=short_id)
 
     codb = ffi.new("git_odb **")
     err = C.git_repository_odb(codb, repo)
-    if err < 0:
-        raise Exception(err)
+    check_error(err)
 
     # get the short id inot a git_oid
     l = len(short_id)
@@ -56,23 +55,23 @@ def expand_id(repo, short_id):
         l -= 1
 
     coid = ffi.new("git_oid *")
-    buf = ffi.buffer(coid)
-    buf[:int(l/2)] = binascii.unhexlify(short_id[:l])
+    err = C.git_oid_fromstrn(coid, to_str(short_id), len(short_id))
+    check_error(err)
 
     cobj = ffi.new("git_odb_object **")
     err = C.git_odb_read_prefix(cobj, codb[0], coid, l)
     C.git_odb_free(codb[0])
     check_error(err)
 
-    long_id = ffi.new("git_oid *")
-    buf = ffi.buffer(long_id)
-    buf = ffi.buffer(C.git_odb_object_id(cobj[0]))
+    oid = Oid.from_c(C.git_odb_object_id(cobj[0]))
     C.git_odb_object_free(cobj[0])
 
-    return binascii.hexlify(buf).decode()
+    return oid
 
 @total_ordering
 class Oid(object):
+
+    __slots__ = ['_buf', '_oid', '_len']
 
     def __init__(self, hex=None, raw=None):
 
@@ -101,6 +100,15 @@ class Oid(object):
         self._oid = oid
         self._buf = buf
         self._len = l
+
+    @classmethod
+    def from_c(cls, oid):
+        o = cls.__new__(cls)
+        o._oid = ffi.new('git_oid *')
+        C.git_oid_cpy(o._oid, oid)
+        o._buf = ffi.buffer(o._oid)
+        o._len = C.GIT_OID_HEXSZ
+        return o
 
     @property
     def raw(self):

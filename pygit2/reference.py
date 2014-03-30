@@ -39,7 +39,7 @@ def guess_oid(repo, id):
     if type(id) == bytes:
         return Oid(raw=id)
     else:
-        return Oid(hex=expand_id(repo, id))
+        return expand_id(repo, id)
 
 class Reference(object):
 
@@ -125,7 +125,7 @@ class Reference(object):
         self._ref = cref[0]
 
     def _target_direct(self):
-        return Oid(raw=ffi.buffer(C.git_reference_target(self._ref)))
+        return Oid.from_c(C.git_reference_target(self._ref))
 
     def _target_direct_set(self, target):
         cref = ffi.new("git_reference **")

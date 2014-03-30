@@ -48,6 +48,7 @@ from .walker import Walker
 class Repository2(object):
 
     _repo = None
+    _obj = ffi.new('git_object **')
 
     def __init__(self, path):
         crepo = ffi.new("git_repository **")
@@ -162,7 +163,7 @@ class Repository2(object):
 
         cref = ffi.new('git_reference **')
         if direct:
-            err = C.git_reference_create(cref, self._repo, to_str(name), Oid(hex=expand_id(self._repo, target))._oid, force)
+            err = C.git_reference_create(cref, self._repo, to_str(name), expand_id(self._repo, target)._oid, force)
         else:
             err = C.git_reference_symbolic_create(cref, self._repo, to_str(name), to_str(target), force)
 
@@ -185,10 +186,9 @@ class Repository2(object):
         if type(key) == str or type(key) == unicode:
             key = Oid(hex=key)
 
-        cobj = ffi.new('git_object **')
-        err = C.git_object_lookup_prefix(cobj, self._repo, key._oid, key._len, C.GIT_OBJ_ANY)
+        err = C.git_object_lookup_prefix(self._obj, self._repo, key._oid, key._len, C.GIT_OBJ_ANY)
         check_error(err)
-        return wrap_object(self, cobj)
+        return wrap_object(self, self._obj)
 
     def create_commit(self, reference, author, committer, message, tree, parents, encoding=None):
         tree = self[expand_id(self._repo, tree)]
@@ -202,7 +202,7 @@ class Repository2(object):
                                   to_str(encoding), to_str(message, encoding),
                                   tree._tree, len(parents), [p._commit for p in parents])
         check_error(err)
-        return Oid(raw=ffi.buffer(coid))
+        return Oid.from_c(coid)
 
     def __repr__(self):
         return "%s(%s)" % (type(self).__name__, self.path)

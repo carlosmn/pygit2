@@ -70,9 +70,10 @@ def object_type(target_type):
 
 class Object(object):
 
+    __slots__ = ['_repo', '_obj']
+
     def __init__(self, repo, cobj):
         self._repo = repo
-        self._cobj = cobj
         self._obj = cobj[0]
 
     def __del__(self):
@@ -80,7 +81,7 @@ class Object(object):
 
     @property
     def id(self):
-        return Oid(raw=ffi.buffer(C.git_object_id(self._obj)))
+        return Oid.from_c(C.git_object_id(self._obj))
 
     @property
     def hex(self):
@@ -120,7 +121,7 @@ class Commit(Object):
         count = C.git_commit_parentcount(self._commit)
         lst = [None]*count
         for i in range(count):
-            lst[i] = Oid(raw=ffi.buffer(C.git_commit_parent_id(self._commit, i)))
+            lst[i] = Oid.from_c(C.git_commit_parent_id(self._commit, i))
         return lst
 
     @property
@@ -157,7 +158,7 @@ class Commit(Object):
 
     @property
     def tree_id(self):
-        return Oid(raw=ffi.buffer(C.git_commit_tree_id(self._commit)))
+        return Oid.from_c(C.git_commit_tree_id(self._commit))
 
     @property
     def tree(self):
