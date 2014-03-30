@@ -43,6 +43,7 @@ from .reference import Branch
 from .oid import Oid, expand_id
 from .errors import check_error
 from .object import wrap_object
+from .walker import Walker
 
 class Repository2(object):
 
@@ -167,6 +168,12 @@ class Repository2(object):
 
         check_error(err)
         return Reference2(self, cref)
+
+    def walk(self, start, sorting=C.GIT_SORT_NONE):
+        walk = Walker(self)
+        walk.push(start)
+        walk.sort(sorting)
+        return walk
 
     def create_branch(self, name, target, force=False):
         cref = ffi.new('git_reference **')

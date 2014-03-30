@@ -111,6 +111,8 @@ typedef enum {
 	GIT_BRANCH_LOCAL = 1,
 	GIT_BRANCH_REMOTE = 2,
 } git_branch_t;
+#define GIT_SORT_NONE ...
+#define GIT_SORT_TIME ...
 
 #define GIT_OID_RAWSZ ...
 
@@ -130,6 +132,7 @@ typedef struct git_odb git_odb;
 typedef ... git_tree;
 typedef ... git_odb_object;
 typedef ... git_branch_iterator;
+typedef ... git_revwalk;
 
 
 int git_repository_open(git_repository **, const char *);
@@ -241,6 +244,15 @@ int git_commit_create(git_oid *id,
 int git_signature_new(git_signature **out, const char *name, const char *email, git_time_t time, int offset);
 int git_signature_now(git_signature **out, const char *name, const char *email);
 void git_signature_free(git_signature *sig);
+
+int git_revwalk_new(git_revwalk **out, git_repository *repo);
+void git_revwalk_free(git_revwalk *walk);
+void git_revwalk_sorting(git_revwalk *walk, unsigned int sort_mode);
+int git_revwalk_push(git_revwalk *walk, const git_oid *id);
+int git_revwalk_hide(git_revwalk *walk, const git_oid *id);
+int git_revwalk_next(git_oid *out, git_revwalk *walk);
+void git_revwalk_reset(git_revwalk *walker);
+void git_revwalk_simplify_first_parent(git_revwalk *walk);
 
 """)
 

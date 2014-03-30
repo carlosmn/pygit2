@@ -65,7 +65,7 @@ class RevlogTestTest(utils.RepoTestCase):
             self.assertEqual(entry.message, REVLOGS[i][1])
 
 
-class WalkerTest(utils.RepoTestCase):
+class WalkerTest(utils.NewRepoTestCase):
 
     def test_walk(self):
         walker = self.repo.walk(log[0], GIT_SORT_TIME)
