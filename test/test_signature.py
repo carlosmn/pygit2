@@ -30,7 +30,8 @@ from __future__ import unicode_literals
 import unittest
 import time
 
-from pygit2 import Signature
+#from pygit2 import Signature
+from pygit2.signature import Signature
 from .utils import NoRepoTestCase
 
 

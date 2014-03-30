@@ -208,6 +208,7 @@ int git_commit_create(git_oid *id,
 	const git_commit *parents[]);
 
 int git_signature_new(git_signature **out, const char *name, const char *email, git_time_t time, int offset);
+int git_signature_now(git_signature **out, const char *name, const char *email);
 void git_signature_free(git_signature *sig);
 
 """)
