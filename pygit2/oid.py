@@ -95,12 +95,12 @@ class Oid(object):
             if version_info.major == 3 and type(hex) != str:
                     raise TypeError(hex)
 
-            l = len(hex)
-            buf[:int(l/2)] = binascii.unhexlify(hex)
+            l = int(len(hex)/2)
+            buf[:l] = binascii.unhexlify(hex)
 
         self._oid = oid
         self._buf = buf
-        self._len = int(l/2)
+        self._len = l
 
     @property
     def raw(self):
