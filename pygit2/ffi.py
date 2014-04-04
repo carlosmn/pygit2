@@ -49,6 +49,7 @@ ffi = FFI()
 
 ffi.cdef("""
 void git_libgit2_version(int *, int *, int *);
+int git_threads_init(void);
 
 typedef enum {
 	GIT_OK = 0,

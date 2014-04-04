@@ -41,6 +41,8 @@ from .credentials import *
 # ffi API
 from .ffi import ffi, C
 
+C.git_threads_init()
+
 def libgit2_version():
     ver = ffi.new("int [3]")
     C.git_libgit2_version(ver, ver+1, ver+2)
