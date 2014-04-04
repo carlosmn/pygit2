@@ -87,7 +87,7 @@ class Oid(object):
                 raise ValueError(raw)
 
             buf[:] = raw[:]
-            l = C.GIT_OID_RAWSZ
+            l = C.GIT_OID_HEXSZ
         else:
             if len(hex) > 40:
                 raise ValueError("too long")
@@ -99,7 +99,7 @@ class Oid(object):
 
         self._oid = oid
         self._buf = buf
-        self._len = l
+        self._len = len(hex)
 
     @classmethod
     def from_c(cls, oid):

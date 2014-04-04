@@ -83,7 +83,7 @@ class Walker(object):
     def next(self):
         err = C.git_revwalk_next(self._oid, self._walk)
         check_error(err)
-        return self._repo[Oid.from_c(self._oid)]
+        return self._repo._from_oid(self._oid, C.GIT_OID_HEXSZ)
         
     def __iter__(self):
         return self
