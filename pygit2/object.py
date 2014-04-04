@@ -44,6 +44,7 @@ def wrap_object(repo, cobj):
     obj = cobj[0]
 
     objtype = C.git_object_type(obj)
+
     if objtype == C.GIT_OBJ_COMMIT:
         return Commit(repo, cobj)
     elif objtype == C.GIT_OBJ_BLOB:
@@ -101,32 +102,30 @@ class Object(object):
 
 class Commit(Object):
 
-    def __init__(self, repo, cobj):
-        super(Commit, self).__init__(repo, cobj)
-        self._commit = ffi.cast('git_commit *', self._obj)
+    __slots__ = ['_obj']
 
     @property
     def parents(self):
-        count = C.git_commit_parentcount(self._commit)
+        count = C.git_obj_parentcount(self._obj)
         lst = [None]*count
         for i in range(count):
-            cobj = ffi.new('git_commit **')
-            err = C.git_commit_parent(cobj, self._commit, i)
+            cobj = ffi.new('git_object **')
+            err = C.git_commit_parent(cobj, self._obj, i)
             check_error(err)
-            lst[i] = Commit(self._repo, ffi.cast('git_object **', cobj))
+            lst[i] = Commit(self._repo, cobj)
         return lst
 
     @property
     def parent_ids(self):
-        count = C.git_commit_parentcount(self._commit)
+        count = C.git_commit_parentcount(self._obj)
         lst = [None]*count
         for i in range(count):
-            lst[i] = Oid.from_c(C.git_commit_parent_id(self._commit, i))
+            lst[i] = Oid.from_c(C.git_commit_parent_id(self._obj, i))
         return lst
 
     @property
     def message_encoding(self):
-        encoding = C.git_commit_message_encoding(self._commit)
+        encoding = C.git_commit_message_encoding(self._obj)
         if encoding:
             return ffi.string(encoding).decode()
         return None
@@ -134,36 +133,37 @@ class Commit(Object):
     @property
     def message(self):
         encoding = self.message_encoding if self.message_encoding else 'utf-8'
-        return ffi.string(C.git_commit_message(self._commit)).decode(encoding)
+        return ffi.string(C.git_commit_message(self._obj)).decode(encoding)
 
     @property
     def raw_message(self):
-        return bytes(ffi.string(C.git_commit_message(self._commit)))
+        return bytes(ffi.string(C.git_commit_message(self._obj)))
 
     @property
     def commit_time(self):
-        return C.git_commit_time(self._commit)
+        return C.git_commit_time(self._obj)
 
     @property
     def committer(self):
-        sig = C.git_commit_committer(self._commit)
+        sig = C.git_commit_objter(self._obj)
         encoding = self.message_encoding if self.message_encoding else 'utf-8'
         return Signature.from_c(owner=self, sig=sig, encoding=encoding)
 
     @property
     def author(self):
-        sig = C.git_commit_author(self._commit)
-        encoding = self.message_encoding if self.message_encoding else 'utf-8'
+        sig = C.git_commit_author(self._obj)
+        msg_encoding = self.message_encoding
+        encoding = msg_encoding if msg_encoding else 'utf-8'
         return Signature.from_c(owner=self, sig=sig, encoding=encoding)
 
     @property
     def tree_id(self):
-        return Oid.from_c(C.git_commit_tree_id(self._commit))
+        return Oid.from_c(C.git_commit_tree_id(self.obj))
 
     @property
     def tree(self):
         ctree = ffi.new('git_tree **')
-        err = C.git_commit_tree(ctree, self._commit)
+        err = C.git_commit_tree(ctree, self._obj)
         check_error(err)
         return Tree(self._repo, ffi.cast('git_object **', ctree))
 
@@ -171,10 +171,7 @@ class Blob(Object):
     pass
 
 class Tree(Object):
-
-    def __init__(self, repo, cobj):
-        super(Tree, self).__init__(repo, cobj)
-        self._tree = ffi.cast('git_tree *', self._obj)
+    pass
 
 class Tag(Object):
     pass

@@ -225,12 +225,12 @@ int git_commit_parent(git_commit **out,
 	unsigned int n);
 const git_oid * git_commit_parent_id(const git_commit *commit,
 	unsigned int n);
-const char * git_commit_message_encoding(const git_commit *commit);
+const char * git_commit_message_encoding(const git_object *commit);
 const char * git_commit_message(const git_commit *commit);
 const char * git_commit_message_raw(const git_commit *commit);
 git_time_t git_commit_time(const git_commit *commit);
-const git_signature * git_commit_committer(const git_commit *commit);
-const git_signature * git_commit_author(const git_commit *commit);
+const git_signature * git_commit_committer(const git_object *commit);
+const git_signature * git_commit_author(const git_object *commit);
 const git_oid * git_commit_tree_id(const git_commit *commit);
 int git_commit_tree(git_tree **tree_out, const git_commit *commit);
 int git_commit_create(git_oid *id,
