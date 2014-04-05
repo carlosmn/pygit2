@@ -40,7 +40,10 @@ from .oid import Oid, expand_id
 from .errors import check_error
 from .signature import Signature
 
-def wrap_object(repo, obj):
+def wrap_object(repo, obj, ctor=None):
+
+    if ctor:
+        return ctor(repo, obj)
 
     objtype = C.git_object_type(obj)
 

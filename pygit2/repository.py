@@ -180,17 +180,18 @@ class Repository2(object):
         check_error(err)
         return Branch(self, cref)
 
-    def _from_oid(self, oid_in, l):
+    def _lookup_object(self, oid, l):
         """Look up an object given a git_oid*"""
-        err = C.git_object_lookup_prefix(self._cobj, self._repo, oid_in, l, C.GIT_OBJ_ANY)
+        err = C.git_object_lookup_prefix(self._cobj, self._repo, oid, l, C.GIT_OBJ_ANY)
         check_error(err)
-        return wrap_object(self, self._cobj[0])
+        return self._cobj[0]
 
     def __getitem__(self, key):
         if type(key) == str or type(key) == unicode:
             key = Oid(hex=key)
 
-        return self._from_oid(key._oid, key._len)
+        obj = self._lookup_object(key._oid, key._len)
+        return wrap_object(self, obj)
 
     def create_commit(self, reference, author, committer, message, tree, parents, encoding=None):
         tree = self[expand_id(self._repo, tree)]

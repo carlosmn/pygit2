@@ -35,7 +35,7 @@ from .reference import Reference as Reference2
 from .reference import Branch
 from .oid import Oid, expand_id
 from .errors import check_error
-from .object import wrap_object
+from .object import Commit
 
 class Walker(object):
 
@@ -83,7 +83,8 @@ class Walker(object):
     def next(self):
         err = C.git_revwalk_next(self._oid, self._walk)
         check_error(err)
-        return self._repo._from_oid(self._oid, C.GIT_OID_HEXSZ)
+        obj = self._repo._lookup_object(self._oid, C.GIT_OID_HEXSZ)
+        return Commit(self._repo, obj)
         
     def __iter__(self):
         return self
