@@ -40,19 +40,18 @@ from .oid import Oid, expand_id
 from .errors import check_error
 from .signature import Signature
 
-def wrap_object(repo, cobj):
-    obj = cobj[0]
+def wrap_object(repo, obj):
 
     objtype = C.git_object_type(obj)
 
     if objtype == C.GIT_OBJ_COMMIT:
-        return Commit(repo, cobj)
+        return Commit(repo, obj)
     elif objtype == C.GIT_OBJ_BLOB:
-        return Blob(repo, cobj)
+        return Blob(repo, obj)
     elif objtype == C.GIT_OBJ_TREE:
-        return Tree(repo, cobj)
+        return Tree(repo, obj)
     elif objtype == C.GIT_OBJ_TAG:
-        return Tag(repo, cobj)
+        return Tag(repo, obj)
 
 def object_type(target_type):
     if type(target_type) == int:
@@ -73,9 +72,9 @@ class Object(object):
 
     __slots__ = ['_repo', '_obj']
 
-    def __init__(self, repo, cobj):
+    def __init__(self, repo, obj):
         self._repo = repo
-        self._obj = cobj[0]
+        self._obj = obj
 
     def __del__(self):
         C.git_object_free(self._obj)
@@ -108,11 +107,11 @@ class Commit(Object):
     def parents(self):
         count = C.git_obj_parentcount(self._obj)
         lst = [None]*count
+        cobj = ffi.new('git_object **')
         for i in range(count):
-            cobj = ffi.new('git_object **')
             err = C.git_commit_parent(cobj, self._obj, i)
             check_error(err)
-            lst[i] = Commit(self._repo, cobj)
+            lst[i] = Commit(self._repo, cobj[0])
         return lst
 
     @property
@@ -132,7 +131,7 @@ class Commit(Object):
 
     @property
     def message(self):
-        encoding = self.message_encoding if self.message_encoding else 'utf-8'
+        encoding = self.message_encoding or 'utf-8'
         return ffi.string(C.git_commit_message(self._obj)).decode(encoding)
 
     @property
@@ -146,14 +145,13 @@ class Commit(Object):
     @property
     def committer(self):
         sig = C.git_commit_objter(self._obj)
-        encoding = self.message_encoding if self.message_encoding else 'utf-8'
+        encoding = self.message_encoding or 'utf-8'
         return Signature.from_c(owner=self, sig=sig, encoding=encoding)
 
     @property
     def author(self):
         sig = C.git_commit_author(self._obj)
-        msg_encoding = self.message_encoding
-        encoding = msg_encoding if msg_encoding else 'utf-8'
+        encoding = self.message_encoding or 'utf-8'
         return Signature.from_c(owner=self, sig=sig, encoding=encoding)
 
     @property

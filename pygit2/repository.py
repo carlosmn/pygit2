@@ -47,14 +47,12 @@ from .walker import Walker
 
 class Repository2(object):
 
-    _repo = None
-    _obj = ffi.new('git_object **')
+    _cobj = ffi.new('git_object **')
 
     def __init__(self, path):
         crepo = ffi.new("git_repository **")
         if C.git_repository_open(crepo, to_str(path)):
             raise "oops"
-        self._crepo = crepo
         self._repo = crepo[0] # to get the pointer itself
 
     @property
@@ -184,9 +182,9 @@ class Repository2(object):
 
     def _from_oid(self, oid_in, l):
         """Look up an object given a git_oid*"""
-        err = C.git_object_lookup_prefix(self._obj, self._repo, oid_in, l, C.GIT_OBJ_ANY)
+        err = C.git_object_lookup_prefix(self._cobj, self._repo, oid_in, l, C.GIT_OBJ_ANY)
         check_error(err)
-        return wrap_object(self, self._obj)
+        return wrap_object(self, self._cobj[0])
 
     def __getitem__(self, key):
         if type(key) == str or type(key) == unicode:
