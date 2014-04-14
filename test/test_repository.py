@@ -461,6 +461,7 @@ class CloneRepositoryTest(utils.NoRepoTestCase):
         self.assertFalse(repo.is_empty)
         self.assertEqual(repo.remotes[0].name, "custom_remote")
 
+    @unittest.skipIf("os.getenv('PYGIT2_OFFLINE'", "offline mode")
     def test_clone_with_credentials(self):
         credentials = pygit2.UserPass("libgit2", "libgit2")
         repo = clone_repository(
