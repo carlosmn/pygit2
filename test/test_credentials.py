@@ -60,6 +60,7 @@ class CredentialCreateTest(utils.NoRepoTestCase):
         cred = Keypair(username, pubkey, privkey, passphrase)
         self.assertEqual((username, pubkey, privkey, passphrase), cred.credential_tuple)
 
+@unittest.skipIf("os.getenv('PYGIT2_OFFLINE'", "offline mode")
 class CredentialCallback(utils.RepoTestCase):
     def test_callback(self):
         def credentials_cb(url, username, allowed):
@@ -81,6 +82,7 @@ class CredentialCallback(utils.RepoTestCase):
 
         self.assertRaises(TypeError, remote.fetch)
 
+@unittest.skipIf("os.getenv('PYGIT2_OFFLINE'", "offline mode")
 class CallableCredentialTest(utils.RepoTestCase):
 
     def test_user_pass(self):
