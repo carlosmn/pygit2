@@ -69,6 +69,11 @@ libgit2_lib = os.getenv('LIBGIT2_LIB', os.path.join(libgit2_path, 'lib'))
 pygit2_exts = [os.path.join('src', name) for name in os.listdir('src')
                if name.endswith('.c')]
 
+if not os.path.isfile(os.path.join(libgit2_include, 'git2.h')):
+    print("Cannot find the libgit2 header. Please make sure that it is")
+    print("installed and/or set the LIBGIT2 env var to the correct prefix")
+    exit()
+
 
 class TestCommand(Command):
     """Command for running unittests without install."""
