@@ -52,7 +52,7 @@ from .remote import RemoteCollection
 from .blame import Blame
 from .utils import to_bytes, is_string
 from .submodule import Submodule
-
+from .describe import DescribeStrategy, DescribeResult
 
 class Repository(_Repository):
 
@@ -764,3 +764,24 @@ class Repository(_Repository):
         check_error(err)
 
         return int(ahead[0]), int(behind[0])
+
+    #
+    # Describe
+    #
+    def describe_workdir(self, max_candidates_tags=10, strategy=DescribeStrategy.Default, pattern=None,
+                         only_follow_first_parent=False, show_commit_id_as_fallback=False):
+
+        copts = ffi.new('git_describe_options *')
+        check_error(C.git_describe_init_options(copts, C.GIT_DESCRIBE_OPTIONS_VERSION))
+        copts.max_candidates_tags = max_candidates_tags
+        copts.describe_strategy = strategy.value
+        copts.pattern = to_bytes(pattern)
+        copts.only_follow_first_parent = int(only_follow_first_parent)
+        ctops.show_commit_oid_as_fallback = int(show_commit_id_as_fallback)
+
+        cdescribe = ffi.new('git_describe_result **')
+
+        err = C.git_describe_workdir(cdescribe, self._repo, copts)
+        check_error(err)
+
+        return DescribeResult(cdescribe[0])

@@ -702,3 +702,32 @@ int git_merge_commits(git_index **out, git_repository *repo, const git_commit *o
 int git_merge_trees(git_index **out, git_repository *repo, const git_tree *ancestor_tree, const git_tree *our_tree, const git_tree *their_tree, const git_merge_options *opts);
 int git_merge_file_from_index(git_merge_file_result *out, git_repository *repo, const git_index_entry *ancestor, const git_index_entry *ours, const git_index_entry *theirs, const git_merge_file_options *opts);
 void git_merge_file_result_free(git_merge_file_result *result);
+
+typedef enum {
+	GIT_DESCRIBE_DEFAULT,
+	GIT_DESCRIBE_TAGS,
+	GIT_DESCRIBE_ALL,
+} git_describe_strategy_t;
+
+typedef struct git_describe_options {
+	unsigned int version;
+	unsigned int max_candidates_tags;
+	unsigned int describe_strategy;
+	const char *pattern;
+	int only_follow_first_parent;
+	int show_commit_oid_as_fallback;
+} git_describe_options;
+
+#define GIT_DESCRIBE_OPTIONS_VERSION ...
+int git_describe_init_options(git_describe_options *opts, unsigned int version);
+
+typedef struct {
+	unsigned int version;
+	unsigned int abbreviated_size;
+	int always_use_long_format;
+	char *dirty_suffix;
+} git_describe_format_options;
+
+#define GIT_DESCRIBE_FORMAT_OPTIONS_VERSION ...
+
+int git_describe_init_format_options(git_describe_format_options *opts, unsigned int version);
